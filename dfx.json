@@ -1,0 +1,35 @@
+{
+  "canisters": {
+    "small_nft": {
+      "main": "src/small_nft/main.mo",
+      "type": "motoko"
+    },
+    "small_nft_assets": {
+      "dependencies": [
+        "small_nft"
+      ],
+      "frontend": {
+        "entrypoint": "src/small_nft_assets/src/index.html"
+      },
+      "source": [
+        "src/small_nft_assets/assets",
+        "dist/small_nft_assets/"
+      ],
+      "type": "assets"
+    }
+  },
+  "defaults": {
+    "build": {
+      "args": "",
+      "packtool": ""
+    }
+  },
+  "dfx": "0.8.1",
+  "networks": {
+    "local": {
+      "bind": "127.0.0.1:8000",
+      "type": "ephemeral"
+    }
+  },
+  "version": 1
+}
