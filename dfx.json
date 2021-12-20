@@ -3,19 +3,6 @@
     "small_nft": {
       "main": "src/small_nft/main.mo",
       "type": "motoko"
-    },
-    "small_nft_assets": {
-      "dependencies": [
-        "small_nft"
-      ],
-      "frontend": {
-        "entrypoint": "src/small_nft_assets/src/index.html"
-      },
-      "source": [
-        "src/small_nft_assets/assets",
-        "dist/small_nft_assets/"
-      ],
-      "type": "assets"
     }
   },
   "defaults": {
