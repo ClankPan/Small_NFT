@@ -12,6 +12,7 @@ import HashMap "mo:base/HashMap";       //  NFTを管理する本体はハッシ
 import Principal "mo:base/Principal";   //  ICProtocolではaddressをPrincipal IDと呼称する．
 import Nat "mo:base/Nat";               //  HashMapの第2引数で使用
 import Hash "mo:base/Hash";             //  HashMapの第3引数で使用
+import Iter "mo:base/Iter";             //  preupgrade,postupgradeで使う．HashMapのエントリを書き出す．
 
 
 //  `shared(<変数名>)`を加えることで，ICProtocolからこのトランザクションの呼び出し人を受け取ることができる．
@@ -47,9 +48,8 @@ shared(installer) actor class Small_NFT() {
         var metadata : ?TokenMetadata;
     };
 
-    //② エントリ（後でかく）
-    // private stable var tokensEntries : [(Nat, TokenInfo)] = [];
-    // private stable var usersEntries : [(Principal, UserInfo)] = [];
+    //② エントリ　高階変数のupgrade用のエントリ　
+    private stable var _tokenRegistryEntries : [(TokenID, TokenInfo)] = [];
 
     //③ 変数本体
     //  第1引数：テーブル数(?)，第2引数：keyの比較関数，第3引数：keyのhash化関数
@@ -75,7 +75,7 @@ shared(installer) actor class Small_NFT() {
         return _latestTokenID;
     };
 
-    public func ownerOf(tokenId : TokenID) : async Text {   //public funcの戻り値はasync型として記述
+    public query func ownerOf(tokenId : TokenID) : async Text {   //public funcの戻り値はasync型として記述
         //  このswitch-case文がmotokoの鬼門
         /*
         HashMapはnull許容型として帰ってくるため，型安全性のため一度Nullを場合分けしなくてはならない．
@@ -111,7 +111,9 @@ shared(installer) actor class Small_NFT() {
         };
     };
 
-
+    public query func latestTokenID() : async TokenID {
+        return  _latestTokenID;
+    };
 
     //State functions
     /*
@@ -121,11 +123,12 @@ shared(installer) actor class Small_NFT() {
 
     実際どうやるのかは後でかく．
     */
-    // system func preupgrade() {
-
-    // };
-    // system func postupgrade() {
-
-    // };
+    system func preupgrade() {
+        _tokenRegistryEntries := Iter.toArray(_tokenRegistry.entries());
+    };
+    system func postupgrade() { //  保存したエントリをもとに復元
+        _tokenRegistry := HashMap.fromIter<TokenID, TokenInfo>(_tokenRegistryEntries.vals(), 1, Nat.equal, Hash.hash);
+        _tokenRegistryEntries := [];
+    };
 
 };
