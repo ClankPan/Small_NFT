@@ -65,7 +65,7 @@ shared(installer) actor class Small_NFT() {
         #notFoundTokenInfo;
         #alreadyExist;              // 未使用
     };
-    // okの時で関数内で別の型がある時に使う
+    // okの時で関数内で別の型がある時に使う.
     public type Okays = {
         #canTransfer : Text;
         #IsSuccess : Nat;
