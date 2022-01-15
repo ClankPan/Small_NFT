@@ -14,6 +14,8 @@ import Nat "mo:base/Nat";               //  HashMapの第2引数で使用
 import Hash "mo:base/Hash";             //  HashMapの第3引数で使用
 import Iter "mo:base/Iter";             //  preupgrade,postupgradeで使う．HashMapのエントリを書き出す．
 
+import Result "mo:base/Result";         //  エラー処理用のモジュール（add:by hokosugi）              
+
 
 //  `shared(<変数名>)`を加えることで，ICProtocolからこのトランザクションの呼び出し人を受け取ることができる．
 //  `<変数名>.caller`でそのPrincipalを参照できる．
@@ -57,6 +59,18 @@ shared(installer) actor class Small_NFT() {
     private var _tokenRegistry = HashMap.HashMap<TokenID, TokenInfo>(1, Nat.equal, Hash.hash);
     private stable var _latestTokenID: Nat = 0;
 
+    //④ エラー処理(add: by hokosugi)
+    //  Resultライブラリから型指定(https://smartcontracts.org/docs/base-libraries/Result.html)
+    public type Errors = {
+        #notFoundTokenInfo;
+        #alreadyExist;              // 未使用
+    };
+    // okの時で関数内で別の型がある時に使う
+    public type Okays = {
+        #canTransfer : Text;
+        #IsSuccess : Nat;
+    };
+    
 
     public shared(msg) func mint(to : Principal, metadata : ?TokenMetadata) : async TokenID{
         //  最新のtokeIDの更新
@@ -75,7 +89,8 @@ shared(installer) actor class Small_NFT() {
         return _latestTokenID;
     };
 
-    public query func ownerOf(tokenId : TokenID) : async Text {   //public funcの戻り値はasync型として記述
+
+    public query func ownerOf(tokenId : TokenID) : async Result.Result<Text, Errors> {   //public funcの戻り値はasync型として記述
         //  このswitch-case文がmotokoの鬼門
         /*
         HashMapはnull許容型として帰ってくるため，型安全性のため一度Nullを場合分けしなくてはならない．
@@ -86,33 +101,33 @@ shared(installer) actor class Small_NFT() {
         switch(_tokenRegistry.get(tokenId)) {
             case(?tokenInfo) {
                 //owner
-                return Principal.toText(tokenInfo.owner);
+                return #ok(Principal.toText(tokenInfo.owner));
             };
             case(_){
-                return "none";
+                return #err(#notFoundTokenInfo);
             };
         };  
     };
 
-    public shared(msg) func transfer(to : Principal, tokenId : TokenID) : async TokenID {
+    public shared(msg) func transfer(to : Principal, tokenId : TokenID) : async Result.Result<Okays, Errors> {
         switch(_tokenRegistry.get(tokenId)) {
             case(?tokenInfo) {
                 if(tokenInfo.owner != msg.caller ) {
-                    return 0;
+                    return #ok(#canTransfer("yes"));
                 };
 
                 //ownerの書き換え
                 tokenInfo.owner := to; // switch-caseは参照渡しなので，これで直接代入できるはず．
-                return tokenId;
+                return #ok(#IsSuccess(tokenId));
             };
             case(_){
-                return 0;
+                return #err(#notFoundTokenInfo);
             };
         };
     };
 
-    public query func latestTokenID() : async TokenID {
-        return  _latestTokenID;
+    public query func latestTokenID() : async Result.Result<Nat, Text> {
+        return  #ok(_latestTokenID);
     };
 
     //State functions
