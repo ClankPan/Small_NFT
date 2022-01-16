@@ -14,7 +14,7 @@ import Nat "mo:base/Nat";               //  HashMapの第2引数で使用
 import Hash "mo:base/Hash";             //  HashMapの第3引数で使用
 import Iter "mo:base/Iter";             //  preupgrade,postupgradeで使う．HashMapのエントリを書き出す．
 
-import Result "mo:base/Result";         //  エラー処理用のモジュール（add:by hokosugi）              
+             //  エラー処理用のモジュール（add:by hokosugi）              
 
 
 //  `shared(<変数名>)`を加えることで，ICProtocolからこのトランザクションの呼び出し人を受け取ることができる．
